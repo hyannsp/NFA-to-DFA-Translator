@@ -1,31 +1,65 @@
-# Objetivo do Projeto
+# NFA to DFA Translator
 
-### Parte 1: Converter um AFND (com movimentos vazios) em um AFD.  
-Alfabeto: {0,1}
+This project aims to convert a Non-deterministic Finite Automaton (NFA) with epsilon (empty) transitions into a Deterministic Finite Automaton (DFA). It also checks if a set of words is recognized by the generated DFA.
 
-Entrada: um arquivo com a tabela do AFND.
+## Project Objectives
 
-Formato do arquivo de entrada:
+### Part 1: NFA to DFA Conversion
 
-Linha 0: a sequência de estados separados por espaço. EX: A B C D E F  
-Linha 1: estado inicial  
-Linha 2: estados finais separados por espaço ( se houver mais de um estado final)  
-Linha 3 em diante: estado atual, espaço, caractere lido, espaço, próximo estado  
-Obs: respresentar a transição vazia por h  
+**Alphabet:** `{0, 1}`
 
-Saída: um arquivo com a tabela do AFD
+- **Input:**  
+  A file representing the NFA transition table.
 
-Formato do arquivo de saída: o mesmo do arquivo de entrada.  
-Usar o GraphViz para fazer a exibição do grafo do AFND e do AFD.  
-Usar o JFLAP e desenhar os dois autômatos: o de entrada e o de saída.  
+- **Input File Format:**
+  - **Line 0:** The sequence of states separated by spaces.  
+    Example: `A B C D E F`
+  - **Line 1:** The initial state.
+  - **Line 2:** The final states, separated by spaces (if there is more than one final state).
+  - **Line 3 onwards:** Current state, character read, next state.  
+    Use `h` to represent an epsilon (empty) transition.
+  
+  **Example of input:**
+  ```mathematica
+  A B C D E F
+  A
+  F
+  A 0 B
+  A 1 C
+  A h D
+  B 1 D
+  C 0 E
+  D h F
+  E 1 F
+  ```
 
-### Parte 2: Dado um conjunto de palavras, determinar se a palavra é reconhecida ou não pelo
-AFD equivalente gerado na parte 1.
 
-Alfabeto: {0,1}  
-Entrada: um arquivo com as palavras a serem reconhecidas  
-Uma palavra por linha.  
-Saída: um arquivo com todas as palavras e na frente de cada palavra por aceito ou não aceito (reconhecido ou não reconhecido). Por uma palavra por linha.  
-Ex:   
-  Na linha 1: qwefr aceito  
-  Na linha 2: abder não aceito  
+- **Output:**  
+A file representing the DFA transition table in the same format as the input file.
+
+- **Visualization:**  
+- Use **GraphViz** to display the NFA and DFA as graphs.
+- Use **JFLAP** to draw the input and output automata for visual comparison.
+
+
+## How to Run the Project
+
+### Prerequisites
+- Python 3.x
+- Install necessary Python libraries if any (list them if needed)
+- GraphViz installed for graph generation (optional but recommended for visualization)
+
+### Steps
+1. Clone this repository:
+ ```bash
+ git clone https://github.com/hyannsp/NFA-to-DFA-Translator
+ ```
+2. Navigate to **src** folder
+ ```bash
+ cd src
+ ```
+3. Run the main script with an NFA input file:
+ ```bash
+ python main.py
+ ```
+4. Provide the path to your NFA text file when prompted.
