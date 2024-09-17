@@ -1,3 +1,5 @@
+import string
+import os
 # Função para converter a tabela em uma tabela DFA
 def main():
     # Ler o caminho do arquivo
@@ -11,8 +13,99 @@ def main():
 
     print("Matriz lida do arquivo:", text_matrix)
 
+    # Converter para DFA
     dfa_conversion_table = get_dfa_conversion_table(text_matrix)
     print("Resultado da conversão para DFA:", dfa_conversion_table)
+
+    # Transformar em uma array parecida com o txt de entrada.
+    new_text_matrix = format_to_txt(dfa_conversion_table, text_matrix[2])
+
+    # Salvar a matriz como um txt
+    name = input("Insita o nome do arquivo txt que será retornado: ")
+    file_path = f"./output/{name}.txt"
+    save_matrix_to_txt(new_text_matrix, file_path)
+
+def save_matrix_to_txt(matrix, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    
+    with open(file_path, 'w') as file:
+        for row in matrix:
+            # Converte cada item para string e junta com um espaço
+            line = ' '.join(map(str, row))
+            file.write(line + '\n')
+
+def get_dictionary(dfa_table):
+    # Criar um alfabeto com letras
+    alphabet = string.ascii_lowercase
+    unique_nodes = []
+    for line in dfa_table:
+        node = tuple(line[0]) # Deve ser colocado em tupla
+        if node not in unique_nodes:
+            unique_nodes.append(node)
+    # Cria um dicionário para cada node a, b, c...
+    nodes_dict = {node: alphabet[i] for i, node in enumerate(unique_nodes)}
+    return nodes_dict
+
+def translate_matrix(matrix, nodes_dict):
+    translated_matrix = []
+
+    # Itera sobre cada linha da matriz
+    for row in matrix:
+        translated_row = []
+
+        # Itera sobre cada item na linha
+        for item in row:
+            if isinstance(item, list):
+                # Procura uma tradução para a lista
+                translation = next((value for key, value in nodes_dict.items() if list(key) == item), item)
+                translated_row.append(translation)
+            else:
+                # Adiciona o item não traduzido (caso seja um caractere)
+                translated_row.append(item)
+        
+        # Adiciona a linha traduzida à matriz traduzida
+        translated_matrix.append(translated_row)
+
+    return translated_matrix
+
+def format_to_txt(dfa_table,final_nodes_nfa):
+    new_text_matrix = []
+
+    # Um dicionário representado cada node como uma letra do alfabeto: { ('a', 'b', 'c') : a } 
+    nodes_dict = get_dictionary(dfa_table)  
+    print(nodes_dict)
+
+    # Linha 0: Todos os nodes (já como alfabeto)
+    all_nodes = list(nodes_dict.keys())
+    all_nodes = [list(item) for item in all_nodes]
+    new_text_matrix.append(all_nodes)
+
+    # Linha 1: Node que inicializa o automato
+    initial_node = [dfa_table[0][0]] # Esse sempre será o inicial
+    new_text_matrix.append(initial_node)
+
+    # Linha 2: Nodes que finalizam o automato (Se o nfa é finalizado em 'f', qualquer um que contenha 'f' pode ser um finalizador)
+    final_nodes = []
+    for line in all_nodes:
+        for node in line:
+            if node in final_nodes_nfa:
+                final_nodes.append(line)
+    new_text_matrix.append(final_nodes)
+    
+    # Linha 3+: Os nodes e seus caminhos dependendo do alfabeto
+    for line in dfa_table:
+        if line[1] != []:
+            new_text_matrix.append([line[0],'0',line[1]])
+        if line[2] != []:
+            new_text_matrix.append([line[0],'1',line[2]])
+    
+    # Traduzir matriz utilizando alfabeto
+    translated_matrix = translate_matrix(new_text_matrix, nodes_dict)
+    print("Matriz traduzida:")
+    for row in translated_matrix:
+        print(row)
+    
+    return translated_matrix
 
 # pegar os nodes conectados por lambda ('h')
 def get_next_lambda(node, nfa_table):
@@ -106,10 +199,6 @@ def get_dfa_conversion_table(nfa_table):
             nodes_to_convert.append(temp_line[2])
     
     return dfa
-
-
-
-
 
 if __name__ == "__main__":
     main()
