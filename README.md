@@ -46,7 +46,7 @@ A file representing the DFA transition table in the same format as the input fil
 
 ### Prerequisites
 - Python 3.x
-- Install necessary Python libraries if any (list them if needed)
+- Install necessary Python libraries if any (os, string)
 - GraphViz installed for graph generation (optional but recommended for visualization)
 
 ### Steps
@@ -63,3 +63,4 @@ A file representing the DFA transition table in the same format as the input fil
  python main.py
  ```
 4. Provide the path to your NFA text file when prompted.
+5. Provide the filename to your new text file.
