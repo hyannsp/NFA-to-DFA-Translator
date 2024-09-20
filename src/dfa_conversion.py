@@ -68,40 +68,52 @@ def format_to_txt(dfa_table, final_nodes_nfa):
     
     return translated_matrix
 
-# pegar os nodes conectados por lambda ('h')
-def get_next_lambda(node, nfa_table):
-    return [line[2] for line in nfa_table[2:] if len(line) >= 3 and line[0] == node and line[1] == 'h'] or []
+# Função para capturar todos os estados acessíveis por transição lambda
+def get_all_lambda_states(nodes, nfa_table, visited=None):
+    if visited is None:
+        visited = set()
 
-# Retorna a conversão de um node para uma linha
-def get_line(nodes, nfa_table, rec=False):
-    dfa_line = [[], [], []] # Inicializar as três colunas (para 0, 1 e o estado final)
-    final_node = list(nodes) # Garante que 'node' é uma lista
+    lambda_states = set(nodes)
 
-    # Filtrar as linhas da NFA que correspondem ao node atual
-    results = [line for line in nfa_table[3:] if len(line) >= 3 and line[0] in nodes]
+    # Processar cada nó
+    for node in nodes:
+        # Achar todas as transições lambda do nó atual
+        lambda_transitions = [line[2] for line in nfa_table[3:] if line[0] == node and line[1] == 'h']
+        for next_state in lambda_transitions:
+            if next_state not in visited:
+                visited.add(next_state)
+                # Adiciona todos os estados acesiveis por lambda de forma recursiva
+                lambda_states.update(get_all_lambda_states([next_state], nfa_table, visited))
 
-    for result_line in results:
-        match result_line[1]:
-            case '0':  # Adicionar à coluna de transições '0'
-                dfa_line[1].append(result_line[2]) 
-                dfa_line[1] += get_next_lambda(result_line[2], nfa_table)
-            case '1': # Adicionar à coluna de transições '1'
-                dfa_line[2].append(result_line[2])
-                dfa_line[2] += get_next_lambda(result_line[2], nfa_table)
-            case 'h': # Recursão para lidar com lambda ('h')
-                if rec:
-                    continue
-                else:
-                    rec_result = get_line([result_line[2]], nfa_table, True)
-                    # Concatenar o resultado da recursão com a linha atual
-                    dfa_line[1] += rec_result[1]
-                    dfa_line[2] += rec_result[2]
-                    final_node += rec_result[0]
+    return lambda_states
+
+
+# Função para converter um node para uma linha no DFA
+def get_line(nodes, nfa_table):
+    dfa_line = [[], [], []]  # Inicializar as três colunas (para 0, 1 e os estados finais)
+    final_node = set(nodes)  # Conjunto para armazenar todos os nós alcançados por lambda
+
+    # Obter todos os estados alcançáveis por transições lambda
+    lambda_closure = get_all_lambda_states(nodes, nfa_table)
+    final_node.update(lambda_closure)
+
+    # Processar as transições para 0 e 1
+    for node in final_node:
+        results = [line for line in nfa_table[3:] if line[0] == node]
+
+        for result_line in results:
+            match result_line[1]:
+                case '0':  # Processar transição para '0'
+                    dfa_line[1].append(result_line[2])
+                    dfa_line[1].extend(get_all_lambda_states([result_line[2]], nfa_table))  # Incluir lambda após '0'
+                case '1':  # Processar transição para '1'
+                    dfa_line[2].append(result_line[2])
+                    dfa_line[2].extend(get_all_lambda_states([result_line[2]], nfa_table))  # Incluir lambda após '1'
 
     # Remover duplicatas e ordenar as listas
-    dfa_line[0] = sorted(set(final_node))
-    dfa_line[1] = sorted(set(dfa_line[1]))
-    dfa_line[2] = sorted(set(dfa_line[2]))
+    dfa_line[0] = sorted(final_node)  # Todos os nós alcançados pela recursão lambda
+    dfa_line[1] = sorted(set(dfa_line[1]))  # Transições de 0
+    dfa_line[2] = sorted(set(dfa_line[2]))  # Transições de 1
 
     return dfa_line
 
@@ -111,7 +123,7 @@ def get_dfa_conversion_table(nfa_table):
     nodes_already_converted = []
     
     # Obter os nós iniciais (com possíveis lambdas)
-    initial_nodes = get_next_lambda(nfa_table[1][0], nfa_table)
+    initial_nodes = list(get_all_lambda_states(nfa_table[1][0], nfa_table))
     initial_nodes.append(nfa_table[1][0])# Adicionar o node inicial à lista
 
     # Converter a primeira linha (nó inicial)
@@ -121,6 +133,7 @@ def get_dfa_conversion_table(nfa_table):
     # Marcar o nó inicial como convertido
     nodes_already_converted.append(first_line[0])
 
+    print("Primeira Linha: ",first_line)
     # Adicionar nós das transições (coluna 1 e 2) para conversão, se ainda não foram convertidos
     if first_line[1] and first_line[1] not in nodes_already_converted:
         nodes_to_convert.append(first_line[1])
@@ -128,6 +141,8 @@ def get_dfa_conversion_table(nfa_table):
         nodes_to_convert.append(first_line[2])
 
     # Processar todos os nós a serem convertidos
+    print("Nodes para Converter: ", nodes_to_convert)
+    print("Nodes Ja convertidos: ", nodes_already_converted)
     while nodes_to_convert:
         nodes = nodes_to_convert.pop(0)
         if nodes in nodes_already_converted:
@@ -145,5 +160,5 @@ def get_dfa_conversion_table(nfa_table):
             nodes_to_convert.append(temp_line[1])
         if temp_line[2] and temp_line[2] not in nodes_already_converted:
             nodes_to_convert.append(temp_line[2])
-    
+
     return dfa
