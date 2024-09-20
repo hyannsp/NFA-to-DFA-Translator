@@ -1,0 +1,6 @@
+a b
+a
+a b
+a 0 a
+a 1 b
+b 1 b

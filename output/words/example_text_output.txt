@@ -1,0 +1,5 @@
+0110010 - Não Aceito
+100110 - Não Aceito
+100110 - Não Aceito
+01011000 - Não Aceito
+0111111 - Aceito
